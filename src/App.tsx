@@ -11,14 +11,24 @@ import {
   RotateCcw, 
   LayoutGrid,
   ClipboardCheck,
-  Award
+  Award,
+  User,
+  Hash,
+  ArrowRight,
+  LogOut
 } from 'lucide-react';
 import { questions } from './data/questions';
 
-type AppState = 'START' | 'EXAM' | 'RESULT';
+type AppState = 'START' | 'REGISTRATION' | 'EXAM' | 'RESULT';
+
+interface StudentInfo {
+  name: string;
+  examNumber: string;
+}
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>('START');
+  const [studentInfo, setStudentInfo] = useState<StudentInfo>({ name: '', examNumber: '' });
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<(number | null)[]>(new Array(questions.length).fill(null));
   const [timeLeft, setTimeLeft] = useState(60 * 60); // 60 minutes in seconds
@@ -136,13 +146,85 @@ export default function App() {
           </ul>
         </div>
 
+        <div className="mb-8 p-6 bg-amber-50 border border-amber-100 rounded-2xl text-center">
+          <p className="text-amber-800 font-bold text-lg">Full Access Available Now</p>
+          <p className="text-amber-600 text-sm mt-1">Get the complete simulation package for just <span className="text-2xl font-black text-amber-900">$32</span></p>
+        </div>
+
         <button 
-          onClick={startExam}
+          onClick={() => setAppState('REGISTRATION')}
           className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-semibold text-lg hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-zinc-900/20"
         >
-          <Play className="w-5 h-5 fill-current" />
-          Start Exam
+          Proceed to Registration
+          <ArrowRight className="w-5 h-5" />
         </button>
+      </motion.div>
+    </div>
+  );
+
+  const renderRegistrationScreen = () => (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-4">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 md:p-10 border border-zinc-100"
+      >
+        <div className="text-center mb-8">
+          <div className="inline-flex p-3 bg-zinc-900 rounded-2xl mb-4">
+            <User className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-zinc-900">Student Registration</h2>
+          <p className="text-zinc-500 text-sm mt-1">Please enter your details to begin</p>
+        </div>
+
+        <form onSubmit={(e) => { e.preventDefault(); startExam(); }} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1">Full Name</label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+              <input 
+                required
+                type="text"
+                placeholder="Enter your full name"
+                value={studentInfo.name}
+                onChange={(e) => setStudentInfo({ ...studentInfo, name: e.target.value })}
+                className="w-full pl-12 pr-4 py-4 bg-zinc-50 border border-zinc-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1">Exam Number</label>
+            <div className="relative">
+              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+              <input 
+                required
+                type="text"
+                placeholder="e.g. CS/2026/001"
+                value={studentInfo.examNumber}
+                onChange={(e) => setStudentInfo({ ...studentInfo, examNumber: e.target.value })}
+                className="w-full pl-12 pr-4 py-4 bg-zinc-50 border border-zinc-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-900 transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 flex flex-col gap-3">
+            <button 
+              type="submit"
+              className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-semibold text-lg hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-zinc-900/20"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              Start Exam Now
+            </button>
+            <button 
+              type="button"
+              onClick={() => setAppState('START')}
+              className="w-full py-3 text-zinc-500 font-semibold text-sm hover:text-zinc-800 transition-colors"
+            >
+              Back to Instructions
+            </button>
+          </div>
+        </form>
       </motion.div>
     </div>
   );
@@ -160,7 +242,10 @@ export default function App() {
               <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center text-white font-bold text-xs">
                 CBT
               </div>
-              <span className="font-semibold text-zinc-800 hidden md:block">Promotion Exam Simulator</span>
+              <div className="hidden md:block">
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest leading-none mb-1">Candidate</p>
+                <p className="font-bold text-zinc-800 leading-none">{studentInfo.name}</p>
+              </div>
             </div>
             
             <div className="flex items-center gap-6">
@@ -455,8 +540,14 @@ export default function App() {
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-zinc-900 mb-2">Exam Completed!</h1>
-          <p className="text-zinc-500 mb-10">Here is your performance summary</p>
+          <h1 className="text-3xl font-bold text-zinc-900 mb-2">Exam Result Slip</h1>
+          <div className="mb-8 flex flex-col items-center">
+            <div className="px-6 py-3 bg-zinc-50 rounded-2xl border border-zinc-100 inline-block">
+              <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1">Candidate Details</p>
+              <p className="text-lg font-bold text-zinc-800">{studentInfo.name}</p>
+              <p className="text-sm font-medium text-zinc-500">ID: {studentInfo.examNumber}</p>
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-6 mb-10">
             <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-100">
@@ -491,11 +582,14 @@ export default function App() {
               Review Answers
             </button>
             <button 
-              onClick={startExam}
+              onClick={() => {
+                setAppState('START');
+                setStudentInfo({ name: '', examNumber: '' });
+              }}
               className="flex-1 py-4 bg-zinc-900 text-white rounded-2xl font-semibold hover:bg-zinc-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-zinc-900/20"
             >
-              <RotateCcw className="w-5 h-5" />
-              Retake Exam
+              <LogOut className="w-5 h-5" />
+              Exit Simulator
             </button>
           </div>
         </motion.div>
@@ -506,6 +600,7 @@ export default function App() {
   return (
     <div className="font-sans antialiased text-zinc-900">
       {appState === 'START' && renderStartScreen()}
+      {appState === 'REGISTRATION' && renderRegistrationScreen()}
       {appState === 'EXAM' && renderExamScreen()}
       {appState === 'RESULT' && renderResultScreen()}
     </div>
